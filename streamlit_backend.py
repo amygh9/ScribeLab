@@ -24,6 +24,7 @@ from models.qwen3_model import Qwen3WindowModel
 from models.whisper2_model import Whisper2
 from models.simulstreaming_model import SimulStreamingModel
 from models.qwen3vad_model import Qwen3VadModel
+from models.whispervad_model import WhisperVadModel
 
 from metrics.metrics import (
     SessionAggregator,
@@ -228,7 +229,30 @@ def build_model(name: str):
             vad_max_speech_s=20.0,
             pre_speech_ms=200,
         )
+    if name == "whispervad":
+        model_dir = os.path.join(
+            PROJECT_ROOT, "ASR_models", "sherpa-onnx-whisper-small"
+        )
+        print("Using Whisper VAD model_dir:", model_dir, flush=True)
 
+        return WhisperVadModel(
+            model_dir=model_dir,
+            sample_rate=16000,
+            num_threads=3,
+
+            # Whisper settings
+            whisper_language="de",
+            whisper_task="transcribe",
+            whisper_tail_paddings=-1,
+
+            # VAD settings (tuned for faster demo)
+            vad_threshold=0.5,
+            vad_min_silence_s=0.3,   # ↓ faster endpoint than Qwen
+            vad_min_speech_s=0.2,
+            vad_window_size=512,
+            vad_max_speech_s=10.0,   # ↓ shorter segments → faster output
+            pre_speech_ms=200,
+        )
     if name == "simulstreaming":
         repo_root = os.path.join(PROJECT_ROOT, "ASR_models", "SimulStreaming")
         print("Using SimulStreaming repo_root:", repo_root, flush=True)

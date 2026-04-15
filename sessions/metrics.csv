@@ -744,3 +744,43 @@ Die Aufbereitung von wiederverwendbaren Medizinprodukten beinhaltet Vorbereitung
 Desinfektion, Prüfung auf Sauberkeit und Funktionalität, Verpackung, Sterilisation und
 sachgerechte Lagerung.
 ","Stereolisation ist ein validiert es Verfahren zu in aktivieren lebens fähigen Mikroorgan ismen. Der Zustand der Stereolität beschreibt das Freisein von Verme hrungswegenkeim. Der absolute Keimfrei heit praktisch nicht nach weisbar ist. Wird das St ereolitätssicherheits niveau als Wahrscheinlichke itsmaß verwendet Vor der Stereolisation er folgt die Reinigung zur Ent fernung sichtbarer Ansch mutzungen, sowie die Desinfekt ion zu, äh Reduktion der Mik robienbelast ung. Was ist das für eine Stereolität? Was ist","{""interface"": ""usb"", ""gain"": 8.0, ""denoise"": false, ""person_id"": ""person_001"", ""output_times_s"": [4.9284508228302, 6.146813869476318, 7.364983320236206, 8.55615782737732, 9.76682186126709, 10.948371410369873, 14.606786489486694, 15.804959297180176, 17.028538703918457, 18.196040391921997, 21.811509370803833, 23.028926134109497, 24.24851393699646, 25.440850019454956, 30.275166034698486, 31.463116884231567, 32.693504095077515, 33.88224506378174, 36.257331132888794, 41.10378932952881, 42.342660427093506, 43.57078528404236, 44.75897932052612, 45.946282625198364, 47.157607555389404, 48.35231375694275, 49.55619835853577, 50.748082637786865, 51.97861099243164, 53.168328523635864, 54.347484827041626, 56.78505992889404, 57.97345018386841, 60.42403197288513, 61.6315860748291, 62.81965160369873, 62.82982325553894], ""output_types"": [""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""final""]}"
+2026-04-15T15:19:57Z,zipformer_test_001_20260415T151929Z,zipformer,test_001,0.946970,0.925926,1.000000,0.946970,0.814337,0.602007,0.692256,9.508003,9.328750,0.356058,0.038168,1.609844,9.500924,1.476151,9.367231,0.000000,1.609845,1.609845,9.500925,6,1.578216,1.279614,2.743194,9.500925,"Sterilisation ist ein validiertes Verfahren zur Inaktivierung lebensfähiger Mikroorganismen.
+Der Zustand der Sterilität beschreibt das Freisein von vermehrungsfähigen Keimen.
+Da absolute Keimfreiheit praktisch nicht nachweisbar ist, wird das Sterilitätssicherheitsniveau
+als Wahrscheinlichkeitsmaß verwendet.
+Vor der Sterilisation erfolgt die Reinigung zur Entfernung sichtbarer Anschmutzungen sowie die
+Desinfektion zur Reduktion der mikrobiellen Belastung.
+Die vorhandene Ausgangsbelastung wird als Bioburden bezeichnet.
+Die Wirksamkeit eines Sterilisationsverfahrens hängt von definierten Prozessparametern wie
+Temperatur, Druck, Einwirkzeit, Luftfeuchte und Konzentration des sterilisierenden Agens ab.
+Die Validierung umfasst Installationsqualifizierung, Funktionsqualifizierung und
+Leistungsqualifizierung.
+Die Verifizierung bestätigt die Einhaltung festgelegter Anforderungen.
+Ein Sterilbarrieresystem verhindert das Eindringen von Mikroorganismen und ermöglicht eine
+aseptische Bereitstellung.
+Die parametrische Freigabe erfolgt auf Basis dokumentierter Prozessdaten ohne zusätzliche
+Endproduktprüfung.
+Die Aufbereitung von wiederverwendbaren Medizinprodukten beinhaltet Vorbereitung, Reinigung,
+Desinfektion, Prüfung auf Sauberkeit und Funktionalität, Verpackung, Sterilisation und
+sachgerechte Lagerung.
+","Frauen, Sterilisation ist ein validiertes Verfahren zur Inaktivierung lebensähiger Mikroorganismen","{""interface"": ""usb"", ""gain"": 8.0, ""denoise"": false, ""person_id"": ""person_001"", ""output_times_s"": [1.60984468460083, 2.9095466136932373, 4.189429521560669, 5.478116750717163, 6.757730484008789, 9.500924825668335], ""output_types"": [""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""final""]}"
+2026-04-15T15:19:57Z,zipformer_test_001_20260415T151929Z,zipformer,test_001,0.946970,0.925926,1.000000,0.946970,0.814337,0.602007,0.692256,9.508003,9.328750,0.356058,0.038168,1.609844,9.500924,1.476151,9.367231,0.000000,1.609845,1.609845,9.500925,6,1.578216,1.279614,2.743194,9.500925,"Sterilisation ist ein validiertes Verfahren zur Inaktivierung lebensfähiger Mikroorganismen.
+Der Zustand der Sterilität beschreibt das Freisein von vermehrungsfähigen Keimen.
+Da absolute Keimfreiheit praktisch nicht nachweisbar ist, wird das Sterilitätssicherheitsniveau
+als Wahrscheinlichkeitsmaß verwendet.
+Vor der Sterilisation erfolgt die Reinigung zur Entfernung sichtbarer Anschmutzungen sowie die
+Desinfektion zur Reduktion der mikrobiellen Belastung.
+Die vorhandene Ausgangsbelastung wird als Bioburden bezeichnet.
+Die Wirksamkeit eines Sterilisationsverfahrens hängt von definierten Prozessparametern wie
+Temperatur, Druck, Einwirkzeit, Luftfeuchte und Konzentration des sterilisierenden Agens ab.
+Die Validierung umfasst Installationsqualifizierung, Funktionsqualifizierung und
+Leistungsqualifizierung.
+Die Verifizierung bestätigt die Einhaltung festgelegter Anforderungen.
+Ein Sterilbarrieresystem verhindert das Eindringen von Mikroorganismen und ermöglicht eine
+aseptische Bereitstellung.
+Die parametrische Freigabe erfolgt auf Basis dokumentierter Prozessdaten ohne zusätzliche
+Endproduktprüfung.
+Die Aufbereitung von wiederverwendbaren Medizinprodukten beinhaltet Vorbereitung, Reinigung,
+Desinfektion, Prüfung auf Sauberkeit und Funktionalität, Verpackung, Sterilisation und
+sachgerechte Lagerung.
+","Frauen, Sterilisation ist ein validiertes Verfahren zur Inaktivierung lebensähiger Mikroorganismen","{""interface"": ""usb"", ""gain"": 8.0, ""denoise"": false, ""person_id"": ""person_001"", ""output_times_s"": [1.60984468460083, 2.9095466136932373, 4.189429521560669, 5.478116750717163, 6.757730484008789, 9.500924825668335], ""output_types"": [""partial"", ""partial"", ""partial"", ""partial"", ""partial"", ""final""]}"
