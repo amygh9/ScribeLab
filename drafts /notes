@@ -1,0 +1,18 @@
+
+. Next level 
+
+You can also:
+
+📈 Time evolution plot
+x: output time
+y: partial hypothesis length
+📊 Stability metric
+variance of inter-output time
+🤖 Model ranking score
+
+Combine:
+
+score = WER + α * latency
+
+
+Da die vier Modelle in den Live-Tests jeweils mit einer neu gesprochenen Version desselben Textes getestet wurden, können Unterschiede nicht ausschließlich auf die Modellleistung zurückgeführt werden. Aussprache, Sprechtempo, Pausen und kleine Abweichungen im gelesenen Text können die Ergebnisse beeinflussen. Um diesen Einfluss zu kontrollieren, wurde zusätzlich ein Offline-Kontrollversuch durchgeführt.

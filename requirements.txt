@@ -1,0 +1,31 @@
+# Core UI
+streamlit>=1.32
+streamlit-autorefresh>=1.0.1
+
+# Numerical / utility
+numpy>=1.24
+
+# Project Aria dependencies
+projectaria-tools
+
+# Classical ASR backend
+vosk>=0.3.45
+
+# Transformer / deep learning ASR backends
+transformers>=4.40
+torch
+sentencepiece>=0.1.99
+accelerate>=0.28
+safetensors>=0.4
+
+# Evaluation / NLP
+bert-score>=0.3.13
+phonemizer>=3.2.1
+
+# Optional but commonly needed by some HF/speech pipelines
+librosa>=0.10
+soundfile>=0.12
+scipy>=1.10
+
+# If your local models use sherpa-onnx wrappers, install it separately if needed.
+# sherpa-onnx

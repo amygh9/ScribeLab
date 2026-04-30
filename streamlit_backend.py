@@ -21,7 +21,7 @@ from models.zipformer_model import ZipformerStreamingModel
 from models.whisper_model import WhisperWindowModel
 from models.wav2vec2_model import Wav2Vec2WindowModel
 from models.qwen3_model import Qwen3WindowModel
-from models.whisper2_model import Whisper2
+
 from models.simulstreaming_model import SimulStreamingModel
 from models.qwen3vad_model import Qwen3VadModel
 from models.whispervad_model import WhisperVadModel
@@ -33,25 +33,27 @@ from metrics.metrics import (
     OutputLatencyTracker,
 )
 
-GROUND_TRUTH_TEXT = """Sterilisation ist ein validiertes Verfahren zur Inaktivierung lebensfähiger Mikroorganismen.
-Der Zustand der Sterilität beschreibt das Freisein von vermehrungsfähigen Keimen.
-Da absolute Keimfreiheit praktisch nicht nachweisbar ist, wird das Sterilitätssicherheitsniveau
-als Wahrscheinlichkeitsmaß verwendet.
-Vor der Sterilisation erfolgt die Reinigung zur Entfernung sichtbarer Anschmutzungen sowie die
-Desinfektion zur Reduktion der mikrobiellen Belastung.
-Die vorhandene Ausgangsbelastung wird als Bioburden bezeichnet.
-Die Wirksamkeit eines Sterilisationsverfahrens hängt von definierten Prozessparametern wie
-Temperatur, Druck, Einwirkzeit, Luftfeuchte und Konzentration des sterilisierenden Agens ab.
-Die Validierung umfasst Installationsqualifizierung, Funktionsqualifizierung und
-Leistungsqualifizierung.
-Die Verifizierung bestätigt die Einhaltung festgelegter Anforderungen.
-Ein Sterilbarrieresystem verhindert das Eindringen von Mikroorganismen und ermöglicht eine
-aseptische Bereitstellung.
-Die parametrische Freigabe erfolgt auf Basis dokumentierter Prozessdaten ohne zusätzliche
-Endproduktprüfung.
-Die Aufbereitung von wiederverwendbaren Medizinprodukten beinhaltet Vorbereitung, Reinigung,
-Desinfektion, Prüfung auf Sauberkeit und Funktionalität, Verpackung, Sterilisation und
-sachgerechte Lagerung.
+GROUND_TRUTH_TEXT = """Die Sterilisation ist ein validiertes Verfahren zur Sicherstellung der Sterilität.
+Dabei werden Mikroorganismen in einem kontrollierten Prozess inaktiviert.
+
+Vor dem Sterilisationszyklus erfolgt die Reinigung mit einem geeigneten Reinigungsmittel.
+Die Reinigung kann manuell oder in einem Reinigungs Desinfektionsgerät durchgeführt werden.
+Anschließend erfolgt die chemische Desinfektion.
+
+Die mikrobielle Kontamination wird als Bioburden beschrieben.
+Bei der Belastungsprüfung werden koloniebildende Einheiten analysiert.
+
+Der Sterilisationsprozess läuft in einer Kammer mit definierter Referenztemperatur.
+Die Haltezeit, die Aufbaudauer und die Abbaudauer bestimmen die Zykluszeit.
+Parameter wie Luftfeuchte werden während des Prozesses überwacht.
+
+Bei der Verwendung von Filtern wird eine Filterintegritätsprüfung durchgeführt.
+
+In strahlenbasierten Verfahren wird die Dosimetrie eingesetzt.
+Dabei wird die absorbierte Strahlendosis überwacht, um die Sterilitätssicherheit zu gewährleisten.
+Dies erfolgt mit Dosimeter und Dosimetriesystem.
+
+Ein aseptischer Arbeitsbereich dient der Vermeidung extrinsischer und intrinsischer Kontamination.
 """
 
 _WS_RE = re.compile(r"\s+")
@@ -130,6 +132,7 @@ class PipelineSink:
         self._lock = threading.Lock()
         self.model = model
         self.latency_tracker = latency_tracker
+        self.chunk_count = 0
 
     def set_model(self, model):
         with self._lock:
@@ -140,14 +143,22 @@ class PipelineSink:
             m = self.model
             lt = self.latency_tracker
 
+        chunk_duration_s = len(chunk.data) / float(chunk.sample_rate)
+        self.chunk_count += 1
+
+        if self.chunk_count % 50 == 1:
+            log_line(
+                f"[CHUNK] n={self.chunk_count} "
+                f"samples={len(chunk.data)} "
+                f"sr={chunk.sample_rate} "
+                f"duration={chunk_duration_s:.4f}s"
+            )
+
         if lt is not None:
-            chunk_duration_s = len(chunk.data) / float(chunk.sample_rate)
             lt.on_audio_chunk(chunk.rms, chunk_duration_s)
 
         if m:
             m.accept_chunk(chunk)
-
-
 def build_model(name: str):
     name = name.lower().strip()
 
@@ -289,6 +300,7 @@ def main():
     denoise = os.environ.get("ASR_DENOISE", "false").lower() == "true"
     test_id = os.environ.get("ASR_TEST_ID", "test_001")
     person_id = os.environ.get("ASR_PERSON_ID", "person_001")
+    gender = os.environ.get("ASR_GENDER", "not_specified")
 
     ASR_DEMO_DIR.mkdir(parents=True, exist_ok=True)
     SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
@@ -441,6 +453,7 @@ def main():
             "gain": gain,
             "denoise": denoise,
             "person_id": person_id,
+            "gender": gender,
         }
 
         hyp_store.append_session(
@@ -454,17 +467,18 @@ def main():
         )
 
         payload = {
+    
             "session_id": session_id,
             "model": model_name,
             "test_id": test_id,
             "person_id": person_id,
+            "gender": gender,
             "ground_truth_text": GROUND_TRUTH_TEXT,
             "hyp_text": hyp_text,
             "meta": meta,
             "latency": asdict(latency_tracker.result()),
             "output_latency": asdict(output_latency_tracker.result()),
         }
-
         with open(LATEST_SESSION_PATH, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
 

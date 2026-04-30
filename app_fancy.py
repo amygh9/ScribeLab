@@ -29,25 +29,28 @@ from metrics.metrics import (
     OutputLatencyResult,
 )
 
-GROUND_TRUTH_TEXT = """Sterilisation ist ein validiertes Verfahren zur Inaktivierung lebensfähiger Mikroorganismen.
-Der Zustand der Sterilität beschreibt das Freisein von vermehrungsfähigen Keimen.
-Da absolute Keimfreiheit praktisch nicht nachweisbar ist, wird das Sterilitätssicherheitsniveau
-als Wahrscheinlichkeitsmaß verwendet.
-Vor der Sterilisation erfolgt die Reinigung zur Entfernung sichtbarer Anschmutzungen sowie die
-Desinfektion zur Reduktion der mikrobiellen Belastung.
-Die vorhandene Ausgangsbelastung wird als Bioburden bezeichnet.
-Die Wirksamkeit eines Sterilisationsverfahrens hängt von definierten Prozessparametern wie
-Temperatur, Druck, Einwirkzeit, Luftfeuchte und Konzentration des sterilisierenden Agens ab.
-Die Validierung umfasst Installationsqualifizierung, Funktionsqualifizierung und
-Leistungsqualifizierung.
-Die Verifizierung bestätigt die Einhaltung festgelegter Anforderungen.
-Ein Sterilbarrieresystem verhindert das Eindringen von Mikroorganismen und ermöglicht eine
-aseptische Bereitstellung.
-Die parametrische Freigabe erfolgt auf Basis dokumentierter Prozessdaten ohne zusätzliche
-Endproduktprüfung.
-Die Aufbereitung von wiederverwendbaren Medizinprodukten beinhaltet Vorbereitung, Reinigung,
-Desinfektion, Prüfung auf Sauberkeit und Funktionalität, Verpackung, Sterilisation und
-sachgerechte Lagerung.
+GROUND_TRUTH_TEXT = """Die Sterilisation ist ein validiertes Verfahren zur Sicherstellung der Sterilität.
+Dabei werden Mikroorganismen in einem kontrollierten Prozess inaktiviert.
+
+Vor dem Sterilisationszyklus erfolgt die Reinigung mit einem geeigneten Reinigungsmittel.
+Die Reinigung kann manuell oder in einem Reinigungs Desinfektionsgerät durchgeführt werden.
+Anschließend erfolgt die chemische Desinfektion.
+
+Die mikrobielle Kontamination wird als Bioburden beschrieben.
+Bei der Belastungsprüfung werden koloniebildende Einheiten analysiert.
+
+Der Sterilisationsprozess läuft in einer Kammer mit definierter Referenztemperatur.
+Die Haltezeit, die Aufbaudauer und die Abbaudauer bestimmen die Zykluszeit.
+Parameter wie Luftfeuchte werden während des Prozesses überwacht.
+
+Bei der Verwendung von Filtern wird eine Filterintegritätsprüfung durchgeführt.
+
+In strahlenbasierten Verfahren wird die Dosimetrie eingesetzt.
+Dabei wird die absorbierte Strahlendosis überwacht, um die Sterilitätssicherheit zu gewährleisten.
+Dies erfolgt mit Dosimeter und Dosimetriesystem.
+
+Ein aseptischer Arbeitsbereich dient der Vermeidung extrinsischer und intrinsischer Kontamination.
+
 """
 
 st.set_page_config(page_title="ASR Demo", layout="wide")
@@ -77,6 +80,29 @@ st.markdown(
     section[data-testid="stSidebar"] {
         background: #0d0d0d;
         border-right: 1px solid #222;
+    }
+    /* Sidebar title: "Controls" */
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 {
+        color: #cfcfcf !important;
+    }
+
+    
+
+    /* Lighter gray field names in sidebar */
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stTextInput label,
+    section[data-testid="stSidebar"] .stSlider label,
+    section[data-testid="stSidebar"] .stCheckbox label {
+        color: #cfcfcf !important;
+        font-weight: 600 !important;
+    }
+    /* Sidebar expander arrow / chevron */
+    section[data-testid="stSidebar"] svg {
+        color: #cfcfcf !important;
+        fill: #cfcfcf !important;
     }
 
     .panel {
@@ -212,8 +238,9 @@ def init_state():
         "interface": "usb",
         "gain": 8.0,
         "denoise": False,
-        "test_id": "test_001",
-        "person_id": "person_001",
+        "test_id": "",
+        "person_id": "",
+        "gender": "not_specified",
         "stable_text": "",
         "last_partial": "",
         "live_hyp": "",
@@ -299,6 +326,7 @@ def start_backend():
     env["ASR_DENOISE"] = "true" if st.session_state.denoise else "false"
     env["ASR_TEST_ID"] = st.session_state.test_id
     env["ASR_PERSON_ID"] = st.session_state.person_id
+    env["ASR_GENDER"] = st.session_state.gender
 
     proc = subprocess.Popen(
         [sys.executable, str(BACKEND_PATH)],
@@ -475,22 +503,51 @@ process_log()
 load_latest_session()
 
 st.sidebar.title("Controls")
-model_options = ["zipformer", "vosk", "whisper", "wav2vec2", "qwen3", "whisper2", "simulstreaming", "qwen3vad"]
+model_options = ["zipformer", "vosk", "whisper", "wav2vec2", "qwen3", "whispervad", "simulstreaming", "qwen3vad"]
 
-st.session_state.model_name = st.sidebar.selectbox(
+st.sidebar.selectbox(
     "Model",
     model_options,
-    index=model_options.index(st.session_state.model_name),
+    key="model_name",
 )
-st.session_state.interface = st.sidebar.selectbox(
+
+st.sidebar.selectbox(
     "Interface",
     ["usb", "wifi"],
-    index=0 if st.session_state.interface == "usb" else 1,
+    key="interface",
 )
-st.session_state.gain = st.sidebar.slider("Gain", 1.0, 12.0, float(st.session_state.gain), 0.5)
-st.session_state.denoise = st.sidebar.checkbox("Denoise", value=st.session_state.denoise)
-st.session_state.test_id = st.sidebar.text_input("Test ID", value=st.session_state.test_id)
-st.session_state.person_id = st.sidebar.text_input("Person ID", value=st.session_state.person_id)
+
+st.sidebar.slider(
+    "Gain",
+    1.0,
+    12.0,
+    8.0,
+    0.5,
+    key="gain",
+)
+
+st.sidebar.checkbox(
+    "Denoise",
+    key="denoise",
+)
+
+st.sidebar.text_input(
+    "Test ID",
+    key="test_id",
+    placeholder="e.g. test_014",
+)
+
+st.sidebar.text_input(
+    "Person ID",
+    key="person_id",
+    placeholder="e.g. person_007",
+)
+
+st.sidebar.selectbox(
+    "Gender",
+    ["not_specified", "female", "male", "diverse"],
+    key="gender",
+)
 
 c1, c2 = st.sidebar.columns(2)
 with c1:
@@ -552,15 +609,15 @@ with left:
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="panel" style="margin-top: 1rem;">', unsafe_allow_html=True)
-    st.markdown('<div class="panel-title">Live Event Log</div>', unsafe_allow_html=True)
+with st.expander("Live Event Log", expanded=False):
+    st.markdown('<div class="panel">', unsafe_allow_html=True)
     log_text = "\n".join(st.session_state.all_lines[-40:]) if st.session_state.all_lines else "No output yet."
     st.markdown(
         f'<div class="event-box">{html.escape(log_text)}</div>',
         unsafe_allow_html=True,
     )
     st.markdown('</div>', unsafe_allow_html=True)
-
+    
 with right:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
     st.markdown('<div class="panel-title">Ground Truth</div>', unsafe_allow_html=True)

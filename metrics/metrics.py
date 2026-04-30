@@ -215,7 +215,6 @@ class LatencyTracker:
             audio_duration_s=audio_duration,
             model_compute_time_s=compute_time,
             rtf=rtf,
-
             stream_start_to_first_partial_s=delta(self.stream_start_t, self.first_partial_t),
             stream_start_to_first_final_s=delta(self.stream_start_t, self.first_final_t),
             speech_start_to_first_partial_s=delta(self.speech_start_t, self.first_partial_t),
@@ -384,6 +383,11 @@ class MetricsStore:
                 "session_id",
                 "model",
                 "test_id",
+                "person_id",
+                "gender",
+                "interface",
+                "gain",
+                "denoise",
                 "wer",
                 "cer",
                 "ser",
@@ -520,10 +524,15 @@ class MetricsStore:
 
         res = self.compute(gt_text, hyp_text)
 
-        # store detailed output timeline inside meta_json
         meta = dict(meta)
         meta["output_times_s"] = output_latency.output_times_s
         meta["output_types"] = output_latency.output_types
+
+        person_id = meta.get("person_id", "")
+        gender = meta.get("gender", "")
+        interface = meta.get("interface", "")
+        gain = meta.get("gain", "")
+        denoise = meta.get("denoise", "")
 
         def fmt(x: Optional[float]) -> str:
             return "" if x is None else f"{x:.6f}"
@@ -535,6 +544,11 @@ class MetricsStore:
                 session_id,
                 model,
                 test_id,
+                person_id,
+                gender,
+                interface,
+                gain,
+                denoise,
                 f"{res.wer:.6f}",
                 f"{res.cer:.6f}",
                 f"{res.ser:.6f}",
