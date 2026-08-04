@@ -1,3 +1,12 @@
+"""
+This is the Main backend application.
+
+This script initializes the audio streaming pipeline, loads the selected
+ASR model, processes incoming audio from the Aria glasses, collects
+transcriptions and latency metrics, and stores the results of each
+evaluation session.
+
+"""
 #!/usr/bin/env python3
 import os
 import json
@@ -12,15 +21,15 @@ ASR_DEMO_DIR = Path(PROJECT_ROOT) / "asr_demo"
 SESSIONS_DIR = ASR_DEMO_DIR / "sessions"
 LOG_PATH = ASR_DEMO_DIR / "live_output.log"
 LATEST_SESSION_PATH = ASR_DEMO_DIR / "latest_session.json"
+#importing the modules for the streaming controller, audio preprocessing, ASR models and metrics
 
 from core.streaming_controller import StreamingController
 from core.audio_preprocessing import PreprocessConfig
 
 from models.vosk_model import VoskStreamingModel
 from models.zipformer_model import ZipformerStreamingModel
-from models.whisper_model import WhisperWindowModel
-from models.wav2vec2_model import Wav2Vec2WindowModel
-from models.qwen3_model import Qwen3WindowModel
+from models.parakeet_model import ParakeetStreamingModel
+
 
 from models.simulstreaming_model import SimulStreamingModel
 from models.qwen3vad_model import Qwen3VadModel
@@ -32,6 +41,8 @@ from metrics.metrics import (
     LatencyTracker,
     OutputLatencyTracker,
 )
+
+# this is the ground truth text for the evaluation.
 
 GROUND_TRUTH_TEXT = """Die Sterilisation ist ein validiertes Verfahren zur Sicherstellung der Sterilität.
 Dabei werden Mikroorganismen in einem kontrollierten Prozess inaktiviert.
@@ -55,6 +66,7 @@ Dies erfolgt mit Dosimeter und Dosimetriesystem.
 
 Ein aseptischer Arbeitsbereich dient der Vermeidung extrinsischer und intrinsischer Kontamination.
 """
+# this is for cleaning up partial hypotheses and deciding when to keep them or how to join them with the previous text. 
 
 _WS_RE = re.compile(r"\s+")
 _LETTER_END_RE = re.compile(r"[A-Za-zÄÖÜäöüß]$")
@@ -89,7 +101,7 @@ def should_join_without_space(current: str, new_text: str, delta_s: float, thres
     if current.endswith((".", ",", ";", ":", "!", "?", ")", "]")):
         return False
 
-    # likely same-word continuation, e.g. "sterili" + "sation"
+    # likely same word continuation, for example "sterili" + "sation"
     if _LETTER_END_RE.search(current) and _LOWER_START_RE.search(new_text):
         return True
 
@@ -126,7 +138,7 @@ def append_incremental_text(current: str, new_text: str, delta_s=None) -> str:
         return current + " " + new_text
     return current + new_text
 
-
+# Pipeline sink for processing audio chunks and managing ASR model
 class PipelineSink:
     def __init__(self, model, latency_tracker=None):
         self._lock = threading.Lock()
@@ -159,6 +171,8 @@ class PipelineSink:
 
         if m:
             m.accept_chunk(chunk)
+
+# here we build the selected ASR model based on the environment variable. Each model may have its own specific configuration and initialization process.
 def build_model(name: str):
     name = name.lower().strip()
 
@@ -167,63 +181,14 @@ def build_model(name: str):
         print("Using Zipformer model_dir:", model_dir)
         return ZipformerStreamingModel(model_dir=model_dir)
 
-    if name == "nemo":
-        model_dir = os.path.join(PROJECT_ROOT, "ASR_models","Zipformer", "en", "nemo_ctc_80ms")
-        print("Using Nemo model_dir:", model_dir)
-        return NemoStreamingModel(model_dir=model_dir)
-
-    if name == "parakeet":
-        model_dir = os.path.join(
-            PROJECT_ROOT,
-            "sherpa-stt-onnx",
-            "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8",
-        )
-        print("Using Parakeet model_dir:", model_dir, flush=True)
-        return ParakeetStreamingModel(
-            model_dir=model_dir,
-            num_threads=1,
-            decode_interval_s=1.0,
-            max_buffer_s=8.0,
-            silence_rms_threshold=0.004,
-            silence_finalize_s=1.0,
-            min_final_chars=12,
-        )
+    
 
     if name == "vosk":
         model_path = os.path.join(PROJECT_ROOT, "ASR_models","vosk-model-small-de-0.15")
         print("Using Vosk model_path:", model_path)
         return VoskStreamingModel(model_path=model_path)
 
-    if name == "whisper":
-        return WhisperWindowModel(
-            language="de",
-            model_name="small",
-            target_seconds=4.0,
-            overlap_seconds=0.0,
-            silence_rms_threshold=0.003,
-            no_speech_threshold=0.8,
-        )
-
-    if name == "wav2vec2":
-        return Wav2Vec2WindowModel(
-            model_id="facebook/wav2vec2-large-xlsr-53-german",
-            target_seconds=20.0,
-            overlap_seconds=10.0,
-        )
-
-    if name == "qwen3":
-        model_dir = os.path.join(
-            PROJECT_ROOT,
-            "ASR_models",
-            "sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25",
-        )
-        print("Using Qwen3 model_dir:", model_dir, flush=True)
-        return Qwen3WindowModel(
-            model_dir=model_dir,
-            target_seconds=3.0,
-            overlap_seconds=0.0,
-        )
-
+    
     if name == "qwen3vad":
         model_dir = os.path.join(
             PROJECT_ROOT, "ASR_models", "sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25"
@@ -233,6 +198,7 @@ def build_model(name: str):
             model_dir=model_dir,
             sample_rate=16000,
             num_threads=3,
+            # VAD settings
             vad_threshold=0.5,
             vad_min_silence_s=0.5,
             vad_min_speech_s=0.25,
@@ -256,12 +222,12 @@ def build_model(name: str):
             whisper_task="transcribe",
             whisper_tail_paddings=-1,
 
-            # VAD settings (tuned for faster demo)
+            # VAD settings
             vad_threshold=0.5,
-            vad_min_silence_s=0.3,   # ↓ faster endpoint than Qwen
-            vad_min_speech_s=0.2,
+            vad_min_silence_s=0.5,   
+            vad_min_speech_s=0.25,
             vad_window_size=512,
-            vad_max_speech_s=10.0,   # ↓ shorter segments → faster output
+            vad_max_speech_s=20.0,   
             pre_speech_ms=200,
         )
     if name == "simulstreaming":
@@ -282,6 +248,23 @@ def build_model(name: str):
                 "--task", "transcribe",
                 "--beams", "1",
             ],
+    
+        )
+    if name == "parakeet":
+        model_dir = os.path.join(
+            PROJECT_ROOT,
+            "ASR_models",
+            "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8",
+        )
+        print("Using Parakeet model_dir:", model_dir, flush=True)
+        return ParakeetStreamingModel(
+            model_dir=model_dir,
+            num_threads=1,
+            decode_interval_s=1.0,
+            max_buffer_s=8.0,
+            silence_rms_threshold=0.004,
+            silence_finalize_s=1.0,
+            min_final_chars=12,
         )
 
     raise ValueError(f"Unknown model '{name}'")
@@ -292,7 +275,7 @@ def log_line(text: str):
         f.write(text.rstrip() + "\n")
         f.flush()
 
-
+# Now this is the main function that initializes the system, starts the streaming controller and ASR model and stores the results after the streaming is stopped. 
 def main():
     model_name = os.environ.get("ASR_MODEL", "zipformer")
     interface = os.environ.get("ASR_INTERFACE", "usb")

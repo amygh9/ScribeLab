@@ -1,5 +1,5 @@
 model,wer_score,cer_score,per_score,bertscore_f1_score,rtf_score,start_to_first_output_s_score,mean_inter_output_s_score,recognition_quality_score,streaming_score,recognition_quality_rank,streaming_rank
-zipformer,1.0,0.8364,1.0,1.0,0.8622,0.9764,0.9061,0.9591,0.9149,1,2
-qwen3vad,0.7569,1.0,0.7624,0.9023,0.2833,0.0,0.0,0.8554,0.0944,2,4
-whispervad,0.722,0.0,0.728,0.8869,0.0,0.4533,0.3449,0.5842,0.2661,3,3
-vosk,0.0,0.213,0.0,0.0,1.0,1.0,1.0,0.0532,1.0,4,1
+zipformer,1.0,0.759,1.0,1.0,0.8549,0.9561,0.9085,0.9397,0.9065,1,2
+qwen3vad,0.7888,1.0,0.7964,0.9109,0.2539,0.0,0.0,0.874,0.0846,2,4
+whispervad,0.7347,0.0,0.7429,0.8915,0.0,0.4658,0.3533,0.5923,0.273,3,3
+vosk,0.0,0.6879,0.0,0.0,1.0,1.0,1.0,0.172,1.0,4,1

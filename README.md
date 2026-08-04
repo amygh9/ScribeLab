@@ -1,35 +1,39 @@
-# ASR Demo for Project Aria
+# ASR Demo
 
-A Streamlit-based live Automatic Speech Recognition (ASR) demo for Project Aria audio streaming.  
-The project supports multiple ASR backends, real-time transcription display, live event logging, and automatic evaluation with quality and latency metrics.
+A live Automatic Speech Recognition (ASR) demonstrator for real-time audio streaming using Project Aria smart glasses.
 
+The project supports multiple ASR backends, real-time transcription and automatic evaluation using transcription quality and latency metrics.
+
+![System Architecture](images/pipeline.png)
 ## Features
 
-- Live audio streaming from **Project Aria**
-- Streamlit UI for controlling the demo
+- Live audio streaming from **Project Aria Glasses**
+- Streamlit-based user interface for controlling the demonstrator
 - Support for multiple ASR models:
-  - Zipformer kroko
+  - Zipformer (Kroko)
   - Vosk
-  - Whisper
-  - Wav2Vec2
-  - Qwen3
   - Whisper + VAD
-  - Qwen3 + VAD
-  - SimulStreaming
+  - Qwen3-ASR + VAD
+
+**Note:** The models listed above were used in the final evaluation of the demonstrator. Additional ASR models have also been integrated:
+    
+    
+    - SimulStreaming
+    - Parakeet
+
+Additional features include:
+
 - Real-time transcript visualization
 - Ground-truth comparison with word-level highlighting
 - Session logging and persistence
-- Automatic metric computation:
-  - WER
-  - CER
-  - SER
-  - PER (optional)
-  - BERTScore Precision / Recall / F1 (optional)
+- Automatic computation of evaluation metrics:
+  - Word Error Rate (WER)
+  - Character Error Rate (CER)
+  - Phoneme Error Rate (PER)
+  - BERTScore (Precision, Recall, F1)
 - Latency tracking:
-  - first output latency
-  - first partial/final latency
-  - RTF
-  - mean inter-output delay
+  - Real-Time Factor (RTF)
+  - Mean Inter-Output Delay
 
 ---
 
@@ -37,58 +41,59 @@ The project supports multiple ASR backends, real-time transcription display, liv
 
 ```text
 asr_demo/
-├── app.py                      # Streamlit frontend
-├── streamlit_backend.py        # Backend process for live streaming and decoding
-├── live_output.log             # Live backend log
-├── live_backend.pid            # Backend PID file
-├── latest_session.json         # Latest finished session payload
-├── logo.png                    # Optional UI logo
+├── app_fancy.py                   # Streamlit frontend for the demonstrator
+├── streamlit_backend.py           # Backend process for live streaming and decoding
+├── live_output.log                # Live backend log
+├── latest_session.json            # Latest completed session payload
+├── images                      # UI logo
 ├── sessions/
-│   ├── hypotheses_sessions.csv # Stored hypotheses per session
-│   └── metrics.csv             # Computed evaluation metrics
+│   ├── hypotheses_sessions.csv    # Stored hypotheses per session
+│   └── metrics.csv                # Computed evaluation metrics
 ├── core/
-│   ├── streaming_controller.py
-│   ├── audio_preprocessing.py
+│   ├── streaming_controller.py    # Streaming module
+│   ├── audio_preprocessing.py     # Audio preprocessing module
 │   ├── base_observer.py
 │   └── types.py
 ├── metrics/
-│   └── metrics.py
-└── models/
+│   └── metrics.py                 # Evaluation metrics implementation
+└── models/                        # ASR model integration and inference
     ├── zipformer_model.py
     ├── vosk_model.py
-    ├── whisper_model.py
-    ├── wav2vec2_model.py
-    ├── qwen3_model.py
     ├── whispervad_model.py
     ├── qwen3vad_model.py
     ├── simulstreaming_model.py
     └── ...
-```
 
-> Adjust file names if your frontend file is not `app.py`.
+── analysis/
+  ├── analyze.py                     # Generates evaluation plots and stores them in results/
+  ├── denoise_analyze.py             # Compares model performance with and without noise reduction
+  └── recording_stream_simulation/   # Streaming simulation experiment and comparison results
+```
 
 ---
 
 ## How It Works
 
-### Frontend (`app.py`)
-The Streamlit app provides:
+### Frontend (`app_fancy.py`)
+
+The Streamlit application provides:
 
 - model selection
-- interface selection (`usb` / `wifi`)
-- gain and denoise configuration
+- interface selection (`usb` or `wifi`)
+- gain and noise-reduction configuration
 - test metadata input (`test_id`, `person_id`, `gender`)
 - start/stop control for the backend
-- metrics computation after a session ends
+- metric computation after a session ends
 
 It also:
 
 - reads the live log file
-- reconstructs live partial/final transcription
-- compares hypothesis vs. ground truth
-- renders the latest metrics from `sessions/metrics.csv`
+- reconstructs live partial and final transcriptions
+- compares hypotheses against the ground truth
+- displays the latest metrics from `sessions/metrics.csv`
 
 ### Backend (`streamlit_backend.py`)
+
 The backend:
 
 - reads runtime configuration from environment variables
@@ -97,15 +102,16 @@ The backend:
 - logs partial and final hypotheses
 - tracks latency and output timing
 - writes the final session payload to `latest_session.json`
-- stores session hypotheses to CSV
+- stores session hypotheses in CSV format
 
 ### Metrics (`metrics/metrics.py`)
+
 The metrics module provides:
 
 - text normalization
-- WER / CER / SER computation
-- PER using `phonemizer` (optional)
-- BERTScore using `bert-score` (optional)
+- WER and CER computation
+- PER using `phonemizer`
+- BERTScore using `bert-score`
 - latency and inter-output statistics
 - CSV export for later analysis
 
@@ -117,22 +123,20 @@ The metrics module provides:
 
 This project is designed for Linux and depends on:
 
-- **Python 3.10+**
-- **Project Aria SDK / projectaria_tools**
-- access to audio streaming from Aria device
-- ASR model files stored locally under paths such as:
-  - `/home/iat/projectaria_client_sdk_samples/ASR_models/...`
-
-Some optional features also require:
-
-- `espeak-ng` for PER via `phonemizer`
-- PyTorch-compatible environment for transformer-based models and BERTScore
+- Python 3.10+
+- Project Aria SDK / `projectaria_tools`
+- Access to audio streaming from an Aria device
+- ASR model files stored locally under:
+  - `ASR_models/...`
+- Sherpa-ONNX
+- `espeak-ng` for PER computation via `phonemizer`
+- A PyTorch-compatible environment for transformer-based models and BERTScore
 
 ---
 
 ## Installation
 
-### 1. Clone your repository
+### 1. Clone the repository
 
 ```bash
 git clone <your-repo-url>
@@ -153,24 +157,71 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Install system dependency for phonemizer (optional, for PER)
+### 4. Install the Project Aria SDK
+
+The demonstrator requires the Meta Project Aria SDK and Python bindings.
+
+Official documentation:
+
+https://facebookresearch.github.io/projectaria_tools/docs/ARK/sdk/setup
+
+Follow the installation instructions provided in the official documentation.
+
+### 5. Install Sherpa-ONNX
+
+The project relies on Sherpa-ONNX for several streaming ASR models.
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y espeak-ng
+pip install sherpa-onnx
 ```
 
-### 5. Make sure your local ASR models exist
+If this does not work, refer to:
 
-From the code, the project expects model folders such as:
+Official installation guide:
 
-- `ASR_models/Zipformer/de/kroko_64l`
-- `ASR_models/vosk-model-small-de-0.15`
-- `ASR_models/sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25`
-- `ASR_models/sherpa-onnx-whisper-small`
-- `ASR_models/SimulStreaming`
+https://k2-fsa.github.io/sherpa/onnx/
 
-Update the hardcoded paths in `app.py` and `streamlit_backend.py` if your setup differs.
+GitHub repository:
+
+https://github.com/k2-fsa/sherpa-onnx
+
+### 6. Ensure local ASR models are available
+
+The project expects model directories such as:
+
+```text
+ASR_models/Zipformer/de/kroko_64l
+ASR_models/vosk-model-small-de-0.15
+ASR_models/sherpa-onnx-qwen3-asr-0.6B-int8-2026-03-25
+ASR_models/sherpa-onnx-whisper-small
+ASR_models/SimulStreaming
+ASR_models/silero-vad.onnx
+```
+
+### 7. Downloading Models
+
+If you want to install the models yourself, please refer to these repositories:
+
+
+If you want to download the models yourself, refer to:
+
+- **Qwen3-ASR**
+  https://k2-fsa.github.io/sherpa/onnx/qwen3-asr/index.html
+
+- **Whisper**
+  https://k2-fsa.github.io/sherpa/onnx/pretrained_models/whisper/export-onnx.html
+
+- **Kroko Zipformer**
+  https://huggingface.co/hudaiapa88/sherpa-stt-onnx
+
+- **Vosk**
+  https://alphacephei.com/vosk/models
+
+- **Additional Sherpa-ONNX Models**
+  https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html
+
+**Note:** Update the hardcoded model paths in `app_fancy.py` and `streamlit_backend.py` if your setup differs.
+
 
 ---
 
@@ -179,25 +230,26 @@ Update the hardcoded paths in `app.py` and `streamlit_backend.py` if your setup 
 Start the Streamlit frontend:
 
 ```bash
-streamlit run app.py
+streamlit run app_fancy.py
 ```
 
 Then in the UI:
 
-1. choose a model
-2. choose interface (`usb` or `wifi`)
-3. set gain / denoise
-4. enter optional metadata
-5. click **Start**
-6. speak / stream audio
-7. click **Stop**
-8. click **Compute Metrics**
+1. Choose a model.
+2. Choose the interface (`usb` or `wifi`).
+3. Configure gain and noise reduction.
+4. Enter optional metadata.
+5. Click **Start**.
+6. Speak or stream audio.
+7. Click **Stop**.
+8. Click **Compute Metrics**.
 
 ---
 
 ## Output Files
 
 ### `live_output.log`
+
 Contains runtime events such as:
 
 - `[INFO]`
@@ -207,103 +259,55 @@ Contains runtime events such as:
 - `[ERROR]`
 
 ### `latest_session.json`
-Stores the most recent finished session with:
+
+Stores the most recent completed session, including:
 
 - session metadata
 - hypothesis text
-- ground truth text
+- ground-truth text
 - latency metrics
 - output timing metrics
 
 ### `sessions/hypotheses_sessions.csv`
-Stores one row per finished session.
+
+Stores one row per completed session.
 
 ### `sessions/metrics.csv`
-Stores computed evaluation metrics and latency values.
+
+Stores evaluation metrics and latency measurements.
 
 ---
 
-## Supported Models in Current UI
-
-The frontend currently exposes these model keys:
-
-- `zipformer`
-- `vosk`
-- `whisper`
-- `wav2vec2`
-- `qwen3`
-- `whispervad`
-- `simulstreaming`
-- `qwen3vad`
-
-The backend also contains placeholders for additional models such as `nemo` and `parakeet`, but these are not currently listed in the Streamlit selectbox.
-
----
-
-## Notes About Optional Dependencies
-
-### PER
-PER is only available if `phonemizer` is installed successfully.
-
-If not installed, PER is stored as empty / `None`.
-
-### BERTScore
-BERTScore is only available if `bert-score` is installed successfully.
-
-If not installed, BERTScore metrics are stored as empty / `None`.
-
----
-
-## Known Configuration Notes
-
-- `PROJECT_ROOT` is hardcoded to:
-
-```python
-/home/iat/projectaria_client_sdk_samples
-```
-
-If you move the project, update:
-
-- `PROJECT_ROOT` in `app.py`
-- `PROJECT_ROOT` in `streamlit_backend.py`
-
-- The frontend expects:
-  - `streamlit_backend.py`
-  - `metrics.metrics`
-  - `logo.png` (optional)
-
-- The backend depends on your internal modules under `core/`, `models/`, and `metrics/`.
-
----
 
 ## Example Workflow
 
 ```bash
-streamlit run app.py
+streamlit run app_fancy.py
 ```
 
-Inside the app:
+Inside the application:
 
 - select `qwen3vad`
 - choose `usb`
 - set gain to `8.0`
-- enable or disable denoise
+- enable or disable noise reduction
 - click **Start**
 - stop after speaking
 - click **Compute Metrics**
 
-You will then see:
+The UI will display:
 
 - live transcription
-- ground truth comparison
+- ground-truth comparison
 - WER / CER / PER / BERTScore
-- latency metrics like RTF and first output delay
+- latency metrics such as RTF and first-output delay
 
 ---
 
 ## Troubleshooting
 
 ### Backend does not start
+
 Check that:
 
 - `streamlit_backend.py` exists
@@ -311,46 +315,11 @@ Check that:
 - all required imports under `core/`, `models/`, and `metrics/` are available
 
 ### No live transcription appears
-Check:
 
-- Aria stream is actually running
+Check that:
+
+- the Aria stream is running
 - the correct interface is selected
 - `live_output.log` is being written
-- model path is valid
+- the model path is valid
 
-### PER is empty
-Install:
-
-```bash
-pip install phonemizer
-sudo apt-get install -y espeak-ng
-```
-
-### BERTScore is empty
-Install:
-
-```bash
-pip install bert-score
-```
-
-### `projectaria_tools` or `aria.sdk` import fails
-Make sure the Project Aria SDK and Python bindings are installed correctly in the current environment.
-
----
-
-## Future Improvements
-
-Possible next steps for the project:
-
-- remove hardcoded paths via `.env` or config file
-- add batch evaluation dashboards
-- add plots for model comparison
-- add export of latency graphs
-- support more streaming-capable German ASR models
-- add automatic session browser in Streamlit
-
----
-
-## License
-
-Add your preferred license here, for example MIT.

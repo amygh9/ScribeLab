@@ -1,3 +1,12 @@
+"""
+This is the Frontend of the demonstrator.
+
+It provides a user interface for interacting with the ASR system,
+allowing users to start/stop sessions, view transcriptions, and
+monitor performance metrics.
+
+"""
+
 import os
 import sys
 import csv
@@ -13,6 +22,7 @@ from difflib import SequenceMatcher
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
+# Paths used by the frontend and backend
 PROJECT_ROOT = Path("/home/iat/projectaria_client_sdk_samples")
 ASR_DEMO_DIR = PROJECT_ROOT / "asr_demo"
 BACKEND_PATH = ASR_DEMO_DIR / "streamlit_backend.py"
@@ -21,14 +31,14 @@ PID_PATH = ASR_DEMO_DIR / "live_backend.pid"
 LATEST_SESSION_PATH = ASR_DEMO_DIR / "latest_session.json"
 SESSIONS_DIR = ASR_DEMO_DIR / "sessions"
 METRICS_CSV_PATH = SESSIONS_DIR / "metrics.csv"
-LOGO_PATH = ASR_DEMO_DIR / "logo.png"
+LOGO_PATH = ASR_DEMO_DIR / "images" / "logo.png"
 
 from metrics.metrics import (
     MetricsStore,
     LatencyResult,
     OutputLatencyResult,
 )
-
+#Ground truth text
 GROUND_TRUTH_TEXT = """Die Sterilisation ist ein validiertes Verfahren zur Sicherstellung der Sterilität.
 Dabei werden Mikroorganismen in einem kontrollierten Prozess inaktiviert.
 
@@ -52,9 +62,9 @@ Dies erfolgt mit Dosimeter und Dosimetriesystem.
 Ein aseptischer Arbeitsbereich dient der Vermeidung extrinsischer und intrinsischer Kontamination.
 
 """
-
+# page title 
 st.set_page_config(page_title="ASR Demo", layout="wide")
-
+# Apply custom dark theme styling 
 st.markdown(
     """
     <style>
@@ -230,7 +240,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
+# Initialize session state variables on first startup
 
 def init_state():
     defaults = {
@@ -252,6 +262,7 @@ def init_state():
         if k not in st.session_state:
             st.session_state[k] = v
 
+# Format metric values for display
 
 def fmt_metric(x: Optional[float], digits: int = 4) -> str:
     if x is None or x == "":
@@ -307,7 +318,7 @@ def is_running() -> bool:
         clear_pid()
         return False
 
-
+# Start the ASR backend process with the selected settings
 def start_backend():
     if is_running():
         return
@@ -344,7 +355,7 @@ def start_backend():
     st.session_state.all_lines = []
     st.session_state.last_session_data = None
 
-
+# Stop the backend and load the latest session results
 def stop_backend():
     pid = read_pid()
     if pid is None:
@@ -405,7 +416,7 @@ def load_latest_session():
     except Exception:
         st.session_state.last_session_data = None
 
-
+# Compute evaluation metrics after a recording session
 def compute_metrics():
     if is_running():
         st.warning("Stop the stream first.")
@@ -502,8 +513,9 @@ st_autorefresh(interval=500, key="live_refresh")
 process_log()
 load_latest_session()
 
+# Sidebar controls for choosing a model and recording settings
 st.sidebar.title("Controls")
-model_options = ["zipformer", "vosk", "whisper", "wav2vec2", "qwen3", "whispervad", "simulstreaming", "qwen3vad"]
+model_options = ["zipformer", "vosk", "whispervad", "simulstreaming", "qwen3vad"]
 
 st.sidebar.selectbox(
     "Model",
@@ -586,7 +598,7 @@ st.markdown(
 )
 
 left, right = st.columns(2)
-
+# Display live transcription
 with left:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
     st.markdown('<div class="panel-title">Live Transcription</div>', unsafe_allow_html=True)
@@ -617,7 +629,7 @@ with st.expander("Live Event Log", expanded=False):
         unsafe_allow_html=True,
     )
     st.markdown('</div>', unsafe_allow_html=True)
-    
+# Display reference text for comparison    
 with right:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
     st.markdown('<div class="panel-title">Ground Truth</div>', unsafe_allow_html=True)
@@ -629,7 +641,7 @@ with right:
 
     st.markdown(f'<div class="gt-box">{gt_html}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
-
+# Show recognition quality metrics
 st.markdown("### Metrics")
 data = st.session_state.last_session_data
 metrics_row = None
@@ -656,7 +668,7 @@ else:
         render_metric_card("BERTScore-P", fmt_metric(metrics_row.get("bertscore_precision")), "higher is better")
     with row2m[2]:
         render_metric_card("BERTScore-R", fmt_metric(metrics_row.get("bertscore_recall")), "higher is better")
-
+# Show timing and latency metrics
 st.markdown("### Important Latency Metrics")
 if data and data.get("latency") and data.get("output_latency"):
     lat = data["latency"]

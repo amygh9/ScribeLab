@@ -1,31 +1,54 @@
+# =========================
 # Core UI
+# =========================
 streamlit>=1.32
 streamlit-autorefresh>=1.0.1
 
-# Numerical / utility
+# =========================
+# Numerical / Data Handling
+# =========================
 numpy>=1.24
-
-# Project Aria dependencies
-projectaria-tools
-
-# Classical ASR backend
-vosk>=0.3.45
-
-# Transformer / deep learning ASR backends
-transformers>=4.40
-torch
-sentencepiece>=0.1.99
-accelerate>=0.28
-safetensors>=0.4
-
-# Evaluation / NLP
-bert-score>=0.3.13
-phonemizer>=3.2.1
-
-# Optional but commonly needed by some HF/speech pipelines
-librosa>=0.10
-soundfile>=0.12
+pandas>=2.0
 scipy>=1.10
 
-# If your local models use sherpa-onnx wrappers, install it separately if needed.
-# sherpa-onnx
+# =========================
+# Audio Processing
+# =========================
+librosa>=0.10
+soundfile>=0.12
+noisereduce>=3.0
+phonemizer>=3.2.1
+
+# =========================
+# Project Aria
+# =========================
+projectaria-tools
+projectaria-client-sdk
+
+# =========================
+# ASR Backends
+# =========================
+
+sherpa-onnx
+
+# =========================
+# Transformer / Deep Learning Models
+# =========================
+torch>=2.2
+transformers>=4.40
+accelerate>=0.28
+sentencepiece>=0.1.99
+safetensors>=0.4
+tokenizers>=0.15
+
+# =========================
+# Evaluation 
+# =========================
+bert-score>=0.3.13
+
+
+# =========================
+# Analysis / Visualization
+# =========================
+matplotlib>=3.8
+

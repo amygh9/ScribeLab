@@ -4,7 +4,7 @@ from typing import Optional
 
 @dataclass
 class AudioChunk:
-    """Unified audio chunk passed to models/diarizer.
+    """Unified audio chunk passed to models.
     data: float32 mono waveform in [-1, 1]
     sample_rate: Hz (usually 16000 after preprocessing)
     rms: float RMS of chunk

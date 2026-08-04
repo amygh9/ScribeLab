@@ -439,7 +439,7 @@ def main():
         "--audio",
         required=True,
         type=Path,
-        help="Path to recorded reference audio, e.g. sessions/person11_reference.wav",
+        help="Path to recorded reference audio, in my case sessions/person11_reference.wav",
     )
 
     parser.add_argument(
